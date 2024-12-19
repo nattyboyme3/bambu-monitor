@@ -15,7 +15,16 @@ serial = os.getenv('SERIAL')
 
 def custom_callback(msg: PrinterStatus):
     printer_status_dict = asdict(msg)
-    pprint.pprint(printer_status_dict)
+    errored = printer_status_dict['print_error'] != 0 or printer_status_dict['gcode_state'] == 'PAUSED'
+    if errored:
+        print("ERROR DETECTED!!!!!!!!!!!!!!!!!!!!!")
+    else:
+        pct = printer_status_dict['mc_percent']
+        rem = printer_status_dict['mc_remaining_time']
+        t_lay = printer_status_dict['total_layer_num']
+        c_lay = printer_status_dict['layer_num']
+        print(f"Things seem to be going ok...............{pct}% done ({rem} min. remaining, {c_lay}/{t_lay} layers)")
+    #pprint.pprint(printer_status_dict)
 
 
 def on_watch_client_connect():
@@ -29,8 +38,7 @@ bambu_client = BambuClient(hostname, access_code, serial)
 bambu_client.start_watch_client(custom_callback, on_watch_client_connect)
 
 try:
-    while True:
-        time.sleep(1)  # Just keep the main thread alive
+    time.sleep(10)  # Just keep the main thread alive
 except KeyboardInterrupt:
     print("Streaming stopped by user.")
 
